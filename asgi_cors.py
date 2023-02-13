@@ -3,7 +3,7 @@ from functools import wraps
 
 
 def asgi_cors_decorator(
-    allow_all=False, hosts=None, host_wildcards=None, callback=None, headers=None, methods=None
+    allow_all=False, hosts=None, host_wildcards=None, callback=None, headers=None, methods=None, allow_credentials=False
 ):
     hosts = hosts or []
     host_wildcards = host_wildcards or []
@@ -32,6 +32,8 @@ def asgi_cors_decorator(
                 if event["type"] == "http.response.start":
                     original_headers = event.get("headers") or []
                     access_control_allow_origin = None
+                    if allow_all:
+
                     if allow_all:
                         access_control_allow_origin = b"*"
                     elif hosts or host_wildcards or callback:
@@ -85,6 +87,13 @@ def asgi_cors_decorator(
                                 ]
                             ],
                         }
+                        if allow_credentials:
+                            event["headers"] = event['headers'] + [
+                                [
+                                    b"access-control-allow-credentials",
+                                    b"true",
+                                ]
+                            ]
                 await send(event)
 
             await app(scope, recieve, wrapped_send)
@@ -94,5 +103,5 @@ def asgi_cors_decorator(
     return _asgi_cors_decorator
 
 
-def asgi_cors(app, allow_all=False, hosts=None, host_wildcards=None, callback=None, headers=None, methods=None):
-    return asgi_cors_decorator(allow_all, hosts, host_wildcards, callback, headers, methods)(app)
+def asgi_cors(app, allow_all=False, hosts=None, host_wildcards=None, callback=None, headers=None, methods=None, allow_credentials=False):
+    return asgi_cors_decorator(allow_all, hosts, host_wildcards, callback, headers, methods, allow_credentials)(app)
