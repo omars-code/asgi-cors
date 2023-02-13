@@ -32,7 +32,6 @@ def asgi_cors_decorator(
                 if event["type"] == "http.response.start":
                     original_headers = event.get("headers") or []
                     access_control_allow_origin = None
-                    if allow_all:
 
                     if allow_all:
                         access_control_allow_origin = b"*"
